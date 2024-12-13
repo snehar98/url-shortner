@@ -120,3 +120,12 @@ http://localhost:8080/v3/api-docs
 ./gradlew build
 ./gradlew bootRun
 ```
+
+### 7.JaCoCo Test Coverage Report
+To generate the JaCoCo test report:
+```bash
+gradle clean test jacocoTestReport
+```
+
+* Access the Report:
+After running the command, open build/reports/jacoco/test/html/index.html in a web browser to view the test coverage report.

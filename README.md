@@ -96,21 +96,16 @@ http://localhost:8080/v3/api-docs
   * Admin endpoints should be explicitly whitelisted using requestMatchers with role-based access control (RBAC) to ensure only ADMIN users can access those paths. 
   * For general access, endpoints can be whitelisted using the first requestMatchers clause without role-based restrictions.
 ```bash
- @Bean
+  @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeRequests()
-                .requestMatchers("/swagger-ui/*", "/v3/api-docs","/v3/api-docs/*", "/swagger-resources/*", "/webjars/*","/actuator/*","/error",
-                        "/favicon.ico")
-                .permitAll()
-                .requestMatchers("/admin/*")
-                .permitAll()
-                .anyRequest()
-                .authenticated();;
-        // Allow all other paths
-
-        return http.build();
+        http.httpBasic(withDefaults()) // Enabling basic HTTP authentication
+                .csrf(AbstractHttpConfigurer::disable) // Disabling CSRF protection (use with caution)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/swagger-ui/*", "/v3/api-docs", "/v3/api-docs/*", "/swagger-resources/*", "/webjars/*", "/actuator/*", "/error", "/favicon.ico", "/users/*", "/users/*/*").permitAll() // Permitting specific URLs
+                        .requestMatchers("/admin/*", "/admin/*/*").authenticated() // Restricting access to /admin/* to authenticated users
+                        .anyRequest().authenticated() // All other requests require authentication
+                );
+        return http.build(); // Building and returning the security filter chain
     }
 ```
 * The application.yml and SecurityConfig files can be customized to enhance or modify security settings, such as enabling/disabling specific authentication methods or refining access control policies.

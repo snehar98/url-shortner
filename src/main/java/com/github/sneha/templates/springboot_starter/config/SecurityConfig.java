@@ -3,25 +3,30 @@ package com.github.sneha.templates.springboot_starter.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import java.util.Collections;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
 /**
- * This class configures Spring Security for the application.
- * It uses basic authentication with a username and password
- * without assigning specific roles to users.
+ * SecurityConfig class configures the security settings for the application.
+ * This includes authentication, authorization, and session management.
  *
  * @author sneharavikumartl
  */
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -33,82 +38,76 @@ public class SecurityConfig {
     private String adminPassword;
 
     /**
-     * Provides an in-memory user store with an admin user.
-     * The method creates a user with a username and password, encodes the password,
-     * and returns the user details. It throws an exception if an unauthorized user is requested.
+     * Bean for creating an in-memory user details service with an admin user.
+     * The admin's password is encoded using BCrypt and added to the in-memory user details manager.
      *
-     * @return UserDetailsService instance that handles authentication for the admin user.
-     * @throws RuntimeException if an unauthorized user is requested.
-     *
+     * @return UserDetailsService containing the admin user
      */
     @Bean
     public UserDetailsService userDetailsService() {
         UserDetails adminUser = User.withUsername(adminUsername)
-                .password(passwordEncoder().encode(adminPassword))
+                .password(passwordEncoder().encode(adminPassword)) // Encoding the password using BCrypt
+                .roles("ADMIN") // Assigning the ADMIN role
                 .build();
-        return username -> {
-            if (adminUsername.equals(username)) {
-                return adminUser;
-            }
-            throw new RuntimeException("Unauthorized User");
-        };
+        return new InMemoryUserDetailsManager(Collections.singleton(adminUser)); // Storing user details in memory
     }
 
     /**
-     * Provides a PasswordEncoder bean to encode passwords using BCrypt.
-     * This bean is used to securely encode user passwords before storing them.
+     * Bean for BCrypt password encoder used for encoding passwords.
      *
-     * @return PasswordEncoder instance that uses BCrypt hashing algorithm.
-     *
+     * @return PasswordEncoder instance
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); // Using BCrypt algorithm for encoding
     }
 
     /**
-     * Configures and provides an AuthenticationManager bean.
-     * The AuthenticationManager is responsible for authenticating users based on their credentials.
-     * It uses the user details service and password encoder for authentication.
+     * Bean for DaoAuthenticationProvider used for authentication with the in-memory user details service.
+     * It also uses the BCryptPasswordEncoder for password matching.
      *
-     * @param http HttpSecurity configuration used to access shared AuthenticationManagerBuilder.
-     * @return AuthenticationManager instance configured with the user details service and password encoder.
-     * @throws Exception if authentication configuration fails.
+     * @return DaoAuthenticationProvider instance
+     */
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
+        auth.setUserDetailsService(userDetailsService()); // Setting the user details service
+        auth.setPasswordEncoder(passwordEncoder()); // Setting the password encoder for authentication
+        return auth;
+    }
+
+    /**
+     * Bean for AuthenticationManager used for managing authentication in the application.
+     * This authentication manager is built using the authentication provider.
      *
+     * @param http HttpSecurity object
+     * @return AuthenticationManager instance
+     * @throws Exception if any error occurs during authentication manager creation
      */
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
-        return authenticationManagerBuilder.build();
+        AuthenticationManagerBuilder authManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authManagerBuilder.authenticationProvider(authenticationProvider()); // Configuring the authentication provider
+        return authManagerBuilder.build(); // Returning the built AuthenticationManager
     }
 
     /**
-     * Configures HTTP security settings using a SecurityFilterChain bean.
-     * This method defines the paths that should be publicly accessible and others that require authentication.
-     * It also disables CSRF and allows access to Swagger, actuator, and error endpoints.
+     * Bean for configuring the security filter chain.
+     * This defines the security settings for HTTP requests, such as CSRF, session management, and request authorization.
      *
-     * @param http HttpSecurity configuration to define security filters for HTTP requests.
-     * @return SecurityFilterChain instance with the security configuration.
-     * @throws Exception if configuration fails.
-     *
+     * @param http HttpSecurity object
+     * @return SecurityFilterChain instance
+     * @throws Exception if any error occurs during security filter chain creation
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeRequests()
-                .requestMatchers("/swagger-ui/*", "/v3/api-docs","/v3/api-docs/*", "/swagger-resources/*", "/webjars/*","/actuator/*","/error",
-                        "/favicon.ico")
-                .permitAll()
-                .requestMatchers("/admin/*")
-                .permitAll()
-                .anyRequest()
-                .authenticated();;
-        // Allow all other paths
-
-        return http.build();
+        http.httpBasic(withDefaults()) // Enabling basic HTTP authentication
+                .csrf(AbstractHttpConfigurer::disable) // Disabling CSRF protection (use with caution)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/swagger-ui/*", "/v3/api-docs", "/v3/api-docs/*", "/swagger-resources/*", "/webjars/*", "/actuator/*", "/error", "/favicon.ico", "/users/*", "/users/*/*").permitAll() // Permitting specific URLs
+                        .requestMatchers("/admin/*", "/admin/*/*").authenticated() // Restricting access to /admin/* to authenticated users
+                        .anyRequest().authenticated() // All other requests require authentication
+                );
+        return http.build(); // Building and returning the security filter chain
     }
-
 }

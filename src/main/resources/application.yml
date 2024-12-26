@@ -1,19 +1,19 @@
 spring:
   application:
-    name: springboot-starter
-#  datasource:
-#    url: jdbc:mysql://localhost:3306/mydatabase #create the database with appropriate name
-#    username: root
-#    password:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#  jpa:
-#    hibernate.ddl-auto: none
-#    #generate-ddl: false #Disable schema management
-#    #show-sql: true #Log SQL queries
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.MySQL8Dialect
-#        #generate_statistics: true #Monitor Hibernate performance
+    name: url-shortner
+  datasource:
+    url: jdbc:mysql://localhost:3306/url_shortner_db?createDatabaseIfNotExist=true #create the database with appropriate name
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate.ddl-auto: none
+    #generate-ddl: false #Disable schema management
+    #show-sql: true #Log SQL queries
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        #generate_statistics: true #Monitor Hibernate performance
   security:
     admin:
       name: admin

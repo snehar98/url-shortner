@@ -1,11 +1,13 @@
-# springboot-starter
+# url-shortner
 
-This is a **Spring Boot Starter Project** configured with essential features such as **Spring Security**, **Redis**, and **OpenAPI** (Swagger) documentation. It provides a base template for quickly setting up Java applications with commonly used configurations.
+This is a **Spring Boot Project**  that enables converting long URLs into short, shareable links. 
+It includes essential features such as **Redis caching**, **MySQL persistence**, and **OpenAPI (Swagger)** documentation, 
+providing a foundation for building scalable and maintainable URL shortener systems.
 
 ## Features
 - **Spring Security** for authentication and authorization
-- **Redis** for caching and data storage (configured with default settings)
-- **MySQL** for relational database support (optional configuration)
+- **Redis** for caching and data storage 
+- **MySQL** for relational database support
 - **OpenAPI** for API documentation using Swagger
 - **Actuator** for application monitoring
 
@@ -13,19 +15,19 @@ This is a **Spring Boot Starter Project** configured with essential features suc
 Before running the application, ensure that you have the following installed:
 - **JDK 17** or higher
 - **Gradle** (depending on your build tool)
-- **Redis** server (Optional)
-- **MySQL** server (Optional)
+- **Redis** server
+- **MySQL** server
 
 ## Setup and Installation
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/snehar98/springboot-starter-project.git
-cd springboot-starter-project
+git clone git@github.com:snehar98/url-shortner.git
+cd url-shortner
 ```
 
-### 2. Configure Redis (Optional)
+### 2. Configure Redis
 If you're using a Redis server locally or remotely, you can configure it in the application.yml file.
 
 application.yml
@@ -101,7 +103,7 @@ http://localhost:8080/v3/api-docs
         http.httpBasic(withDefaults()) // Enabling basic HTTP authentication
                 .csrf(AbstractHttpConfigurer::disable) // Disabling CSRF protection (use with caution)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/swagger-ui/*", "/v3/api-docs", "/v3/api-docs/*", "/swagger-resources/*", "/webjars/*", "/actuator/*", "/error", "/favicon.ico", "/users/*", "/users/*/*").permitAll() // Permitting specific URLs
+                        .requestMatchers("/swagger-ui/*", "/v3/api-docs", "/v3/api-docs/*", "/swagger-resources/*", "/webjars/*", "/actuator/*", "/error", "/favicon.ico", "/urls/*", "/urls/*/*").permitAll() // Permitting specific URLs
                         .requestMatchers("/admin/*", "/admin/*/*").authenticated() // Restricting access to /admin/* to authenticated users
                         .anyRequest().authenticated() // All other requests require authentication
                 );

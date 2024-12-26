@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'com.github.sneha.templates.springboot-starter' is invalid and this project uses 'com.github.sneha.templates.springboot_starter' instead.
+* The original package name 'com.github.sneha.templates.springboot-starter' is invalid and this project uses 'com.github.sneha.templates.url_shortner' instead.
 
 # Getting Started
 

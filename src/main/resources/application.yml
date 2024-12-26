@@ -7,7 +7,7 @@ spring:
     password:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    hibernate.ddl-auto: none
+    hibernate.ddl-auto: update
     #generate-ddl: false #Disable schema management
     #show-sql: true #Log SQL queries
     properties:
@@ -38,7 +38,7 @@ management:
 
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
 
 springdoc:
   api-docs:

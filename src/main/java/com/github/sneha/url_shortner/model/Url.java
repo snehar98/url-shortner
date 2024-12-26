@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 /**
@@ -54,7 +55,7 @@ public class Url {
      * If set, the short URL becomes invalid after this time.
      */
     @Column(name = "expiration_time")
-    private LocalDateTime expirationTime;
+    private LocalDateTime expirationTime=LocalDateTime.now().plus(365, ChronoUnit.DAYS);;
 
     /**
      * The number of times this short URL has been accessed.

@@ -36,6 +36,6 @@ public class ShortUrlGenerator {
         }
 
         // Return the generated short URL as a string
-        return shortUrl.toString();
+        return Constants.CUSTOM_DOMAIN+shortUrl.toString();
     }
 }

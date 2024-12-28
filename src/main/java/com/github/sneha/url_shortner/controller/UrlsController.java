@@ -1,12 +1,13 @@
 package com.github.sneha.url_shortner.controller;
 
+import com.github.sneha.url_shortner.exception.InvalidUrlException;
+import com.github.sneha.url_shortner.model.UrlShortnerRequest;
 import com.github.sneha.url_shortner.service.UrlShortnerService;
+import com.github.sneha.url_shortner.utils.Validator;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller class for handling URL shortening requests.
@@ -24,14 +25,19 @@ public class UrlsController {
 
     /**
      * Endpoint to shorten a given long URL.
-     * This method receives a long URL as a path variable, calls the UrlShortnerService to get the shortened URL,
-     * and returns the shortened URL as the response.
+     * This method receives a long URL in the request body, validates the URL,
+     * calls the UrlShortnerService to generate a shortened URL, and returns it as the response.
+     * If the provided URL is invalid, an InvalidUrlException is thrown.
      *
-     * @param longUrl the original long URL to shorten
+     * @param urlShortnerRequest the request object containing the original long URL to be shortened
      * @return the ResponseEntity containing the shortened URL
+     * @throws InvalidUrlException if the provided URL is not valid
      */
-    @GetMapping("/shortenUrl/{longUrl}")
-    public ResponseEntity<String> getShortUrl(@PathVariable String longUrl){
-        return ResponseEntity.ok(urlShortnerService.getShortUrl(longUrl)); // Return the short URL in the response
+    @PostMapping("/shortenUrl")
+    public ResponseEntity<String> getShortUrl(@RequestBody UrlShortnerRequest urlShortnerRequest) {
+        if (!Validator.isValidUrl(urlShortnerRequest.getLongUrl())) {
+            throw new InvalidUrlException();
+        }
+        return ResponseEntity.ok(urlShortnerService.getShortUrl(urlShortnerRequest.getLongUrl())); // Return the short URL in the response
     }
 }

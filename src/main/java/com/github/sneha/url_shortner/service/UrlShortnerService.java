@@ -17,7 +17,10 @@ public class UrlShortnerService {
     UrlsRepository urlsRepository;
 
     public String getShortUrl(String longUrl) {
-        Url urlEntity = new Url();
+        Url urlEntity = isExistingUrl(longUrl);
+        if (urlEntity!=null)
+            return urlEntity.getShortUrl();
+        urlEntity = new Url();
         urlEntity.setLongUrl(longUrl);
         urlEntity.setShortUrl(shortenUrl(longUrl));
         log.info("Short Url - {} - Length - {} ",urlEntity.getShortUrl(),urlEntity.getShortUrl().length());
@@ -26,11 +29,14 @@ public class UrlShortnerService {
     }
 
     private String shortenUrl(String longUrl) {
-        String shortUrl = ShortUrlGenerator.generateShortUrl();
-        return shortUrl;
+        return ShortUrlGenerator.generateShortUrl();
     }
 
     private void saveUrltoDB(Url url) {
         urlsRepository.save(url);
+    }
+
+    private Url isExistingUrl(String longUrl){
+        return urlsRepository.findByLongUrl(longUrl);
     }
 }
